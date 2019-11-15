@@ -276,6 +276,32 @@ func TestDelete(t *testing.T) {
 	})
 }
 
+func TestOrderedMap_Front(t *testing.T) {
+	t.Run("NilOnEmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.Nil(t, m.Front())
+	})
+
+	t.Run("NilOnEmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set(1, true)
+		assert.NotNil(t, m.Front())
+	})
+}
+
+func TestOrderedMap_Back(t *testing.T) {
+	t.Run("NilOnEmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.Nil(t, m.Back())
+	})
+
+	t.Run("NilOnEmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set(1, true)
+		assert.NotNil(t, m.Back())
+	})
+}
+
 func benchmarkOrderedMap_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := orderedmap.NewOrderedMap()
@@ -375,5 +401,15 @@ func ExampleNewOrderedMap() {
 	for _, key := range m.Keys() {
 		value, _ := m.Get(key)
 		fmt.Println(key, value)
+	}
+}
+
+func ExampleOrderedMap_Front() {
+	m := orderedmap.NewOrderedMap()
+	m.Set(1, true)
+	m.Set(2, true)
+
+	for el := m.Front(); el != nil; el = el.Next() {
+		fmt.Println(el)
 	}
 }
