@@ -1,4 +1,4 @@
-# 🔃 github.com/elliotchance/orderedmap [![GoDoc](https://godoc.org/github.com/elliotchance/orderedmap?status.svg)](https://godoc.org/github.com/elliotchance/orderedmap)
+# 🔃 github.com/elliotchance/orderedmap [![GoDoc](https://godoc.org/github.com/elliotchance/orderedmap?status.svg)](https://godoc.org/github.com/elliotchance/orderedmap) [![Build Status](https://travis-ci.org/elliotchance/orderedmap.svg?branch=master)](https://travis-ci.org/elliotchance/orderedmap)
 
 The `orderedmap` package provides a high performance ordered map in Go:
 
