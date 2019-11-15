@@ -224,7 +224,7 @@ func TestKeys(t *testing.T) {
 
 		assert.InDelta(t,
 			4*res1.NsPerOp(), res4.NsPerOp(),
-			2*float64(res1.NsPerOp()))
+			float64(res4.NsPerOp()))
 	})
 }
 
@@ -272,7 +272,7 @@ func TestDelete(t *testing.T) {
 
 		assert.InDelta(t,
 			4*res1.NsPerOp(), res4.NsPerOp(),
-			2*float64(res1.NsPerOp()))
+			float64(res4.NsPerOp()))
 	})
 }
 
