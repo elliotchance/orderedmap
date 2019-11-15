@@ -76,3 +76,37 @@ func (m *OrderedMap) Delete(key interface{}) (didDelete bool) {
 
 	return ok
 }
+
+// Front will return the element that is the first (oldest Set element). If
+// there are no elements this will return nil.
+func (m *OrderedMap) Front() *Element {
+	front := m.ll.Front()
+	if front == nil {
+		return nil
+	}
+
+	element := front.Value.(*orderedMapElement)
+
+	return &Element{
+		element: front,
+		Key:     element.key,
+		Value:   element.value,
+	}
+}
+
+// Back will return the element that is the last (most recent Set element). If
+// there are no elements this will return nil.
+func (m *OrderedMap) Back() *Element {
+	back := m.ll.Back()
+	if back == nil {
+		return nil
+	}
+
+	element := back.Value.(*orderedMapElement)
+
+	return &Element{
+		element: back,
+		Key:     element.key,
+		Value:   element.value,
+	}
+}
