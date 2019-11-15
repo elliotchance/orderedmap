@@ -2,9 +2,10 @@ package orderedmap_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/elliotchance/orderedmap"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewOrderedMap(t *testing.T) {
@@ -302,6 +303,19 @@ func TestOrderedMap_Back(t *testing.T) {
 	})
 }
 
+func benchmarkMap_Set(multiplier int) func(b *testing.B) {
+	return func(b *testing.B) {
+		m := make(map[int]bool)
+		for i := 0; i < b.N*multiplier; i++ {
+			m[i] = true
+		}
+	}
+}
+
+func BenchmarkMap_Set(b *testing.B) {
+	benchmarkMap_Set(1)(b)
+}
+
 func benchmarkOrderedMap_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := orderedmap.NewOrderedMap()
@@ -315,6 +329,23 @@ func BenchmarkOrderedMap_Set(b *testing.B) {
 	benchmarkOrderedMap_Set(1)(b)
 }
 
+func benchmarkMap_Get(multiplier int) func(b *testing.B) {
+	m := make(map[int]bool)
+	for i := 0; i < 1000*multiplier; i++ {
+		m[i] = true
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = m[i%1000*multiplier]
+		}
+	}
+}
+
+func BenchmarkMap_Get(b *testing.B) {
+	benchmarkMap_Get(1)(b)
+}
+
 func benchmarkOrderedMap_Get(multiplier int) func(b *testing.B) {
 	m := orderedmap.NewOrderedMap()
 	for i := 0; i < 1000*multiplier; i++ {
@@ -323,7 +354,7 @@ func benchmarkOrderedMap_Get(multiplier int) func(b *testing.B) {
 
 	return func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			m.Get(1000 * multiplier % b.N)
+			m.Get(i % 1000 * multiplier)
 		}
 	}
 }
@@ -355,6 +386,23 @@ func BenchmarkOrderedMap_Len(b *testing.B) {
 	benchmarkOrderedMap_Len(1)(b)
 }
 
+func benchmarkMap_Delete(multiplier int) func(b *testing.B) {
+	return func(b *testing.B) {
+		m := make(map[int]bool)
+		for i := 0; i < b.N*multiplier; i++ {
+			m[i] = true
+		}
+
+		for i := 0; i < b.N; i++ {
+			delete(m, i)
+		}
+	}
+}
+
+func BenchmarkMap_Delete(b *testing.B) {
+	benchmarkMap_Delete(1)(b)
+}
+
 func benchmarkOrderedMap_Delete(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := orderedmap.NewOrderedMap()
@@ -363,13 +411,63 @@ func benchmarkOrderedMap_Delete(multiplier int) func(b *testing.B) {
 		}
 
 		for i := 0; i < b.N; i++ {
-			m.Delete(b.N)
+			m.Delete(i)
 		}
 	}
 }
 
 func BenchmarkOrderedMap_Delete(b *testing.B) {
 	benchmarkOrderedMap_Delete(1)(b)
+}
+
+func benchmarkMap_Iterate(multiplier int) func(b *testing.B) {
+	return func(b *testing.B) {
+		m := make(map[int]bool)
+		for i := 0; i < b.N*multiplier; i++ {
+			m[i] = true
+		}
+
+		for _, _ = range m {
+		}
+
+	}
+}
+func BenchmarkMap_Iterate(b *testing.B) {
+	benchmarkMap_Iterate(1)(b)
+}
+
+func benchmarkOrderedMap_Iterate(multiplier int) func(b *testing.B) {
+	return func(b *testing.B) {
+		m := orderedmap.NewOrderedMap()
+		for i := 0; i < b.N*multiplier; i++ {
+			m.Set(i, true)
+		}
+
+		for _, key := range m.Keys() {
+			_, _ = m.Get(key)
+		}
+
+	}
+}
+func BenchmarkOrderedMap_Iterate(b *testing.B) {
+	benchmarkOrderedMap_Iterate(1)(b)
+}
+
+func benchmarkOrderedMap_Iterate2(multiplier int) func(b *testing.B) {
+	return func(b *testing.B) {
+		m := orderedmap.NewOrderedMap()
+		for i := 0; i < b.N*multiplier; i++ {
+			m.Set(i, true)
+		}
+
+		for el := m.Front(); el != nil; el = el.Next() {
+
+		}
+
+	}
+}
+func BenchmarkOrderedMap_Iterate2(b *testing.B) {
+	benchmarkOrderedMap_Iterate2(1)(b)
 }
 
 func benchmarkOrderedMap_Keys(multiplier int) func(b *testing.B) {
@@ -412,4 +510,16 @@ func ExampleOrderedMap_Front() {
 	for el := m.Front(); el != nil; el = el.Next() {
 		fmt.Println(el)
 	}
+}
+
+func BenchmarkAll(b *testing.B) {
+	b.Run("BenchmarkOrderedMap_Set", BenchmarkOrderedMap_Set)
+	b.Run("BenchmarkMap_Set", BenchmarkMap_Set)
+	b.Run("BenchmarkOrderedMap_Get", BenchmarkOrderedMap_Get)
+	b.Run("BenchmarkMap_Get", BenchmarkMap_Get)
+	b.Run("BenchmarkOrderedMap_Delete", BenchmarkOrderedMap_Delete)
+	b.Run("BenchmarkMap_Delete", BenchmarkMap_Delete)
+	b.Run("BenchmarkOrderedMap_Iterate", BenchmarkOrderedMap_Iterate)
+	b.Run("BenchmarkOrderedMap_Iterate2", BenchmarkOrderedMap_Iterate2)
+	b.Run("BenchmarkMap_Iterate", BenchmarkMap_Iterate)
 }

@@ -54,3 +54,24 @@ beyond the first or last item.
 
 If the map is changing while the iteration is in-flight it may produce
 unexpected behavior.
+
+## Performance
+
+Model name: Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
+
+RAM: 8GB
+
+System: Windows 10
+
+```shell
+$go test -benchmem -run=^$ github.com/elliotchance/orderedmap -bench BenchmarkAll
+```
+
+|         | map                 | orderedmap          |
+| ------- | ------------------- | ------------------- |
+| set     | 198 ns/op, 44 B/op  | 722 ns/op, 211 B/op |
+| get     | 18 ns/op, 0 B/op    | 37.3 ns/op, 0 B/op  |
+| delete  | 888 ns/op, 211 B/op | 280 ns/op, 44 B/op  |
+| Iterate | 206 ns/op, 44 B/op  | 693 ns/op, 259 B/op |
+
+
