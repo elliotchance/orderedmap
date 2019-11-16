@@ -78,6 +78,39 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestGetOrDefault(t *testing.T) {
+	t.Run("ReturnsExistingValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "bar")
+		value := m.GetOrDefault("foo", "baz")
+		assert.Equal(t, "bar", value)
+	})
+
+	t.Run("ReturnsDefaultValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		value := m.GetOrDefault("foo", "baz")
+		assert.Equal(t, "baz", value)
+		assert.Equal(t, 1, m.Len())
+	})
+
+	t.Run("Performance", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("performance test skipped in short mode")
+		}
+
+		res1 := testing.Benchmark(benchmarkOrderedMap_GetOrDefault(1))
+		res4 := testing.Benchmark(benchmarkOrderedMap_GetOrDefault(4))
+
+		// O(1) would mean that res4 should take about the same time as res1,
+		// because we are accessing the same amount of elements, just on
+		// different sized maps.
+
+		assert.InDelta(t,
+			res1.NsPerOp(), res4.NsPerOp(),
+			0.5*float64(res1.NsPerOp()))
+	})
+}
+
 func TestSet(t *testing.T) {
 	t.Run("ReturnsTrueIfStringKeyIsNew", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
@@ -330,6 +363,23 @@ func benchmarkOrderedMap_Get(multiplier int) func(b *testing.B) {
 
 func BenchmarkOrderedMap_Get(b *testing.B) {
 	benchmarkOrderedMap_Get(1)(b)
+}
+
+func benchmarkOrderedMap_GetOrDefault(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap()
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(i, true)
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.GetOrDefault(1000*multiplier%b.N, false)
+		}
+	}
+}
+
+func BenchmarkOrderedMap_GetOrDefault(b *testing.B) {
+	benchmarkOrderedMap_GetOrDefault(1)(b)
 }
 
 var tempInt int
