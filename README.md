@@ -9,7 +9,7 @@ go get -u github.com/elliotchance/orderedmap
 ## Basic Usage
 
 An `*OrderedMap` is a high performance ordered map that maintains amortized O(1)
-for `Set`, `Get`, `Delete` and `Len`:
+for `Set`, `Get`, `GetOrDefault`, `Delete` and `Len`:
 
 ```go
 m := orderedmap.NewOrderedMap()
