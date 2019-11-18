@@ -45,6 +45,16 @@ func (m *OrderedMap) Set(key, value interface{}) bool {
 	return !didExist
 }
 
+// GetOrDefault returns the value for a key. If the key does not exist, returns
+// the default value instead.
+func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
+	if value, ok := m.kv[key]; ok {
+		return value.Value.(*orderedMapElement).value
+	}
+
+	return defaultValue
+}
+
 // Len returns the number of elements in the map.
 func (m *OrderedMap) Len() int {
 	return len(m.kv)
