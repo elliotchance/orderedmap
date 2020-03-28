@@ -76,7 +76,7 @@ map[int]bool
 | delete  | 888 ns/op, 211 B/op | 280 ns/op, 44 B/op  |
 | Iterate | 206 ns/op, 44 B/op  | 693 ns/op, 259 B/op |
 
-map[string]bool(PS : Use strconv.Iota())
+map[string]bool(PS : Use strconv.Itoa())
 
 |             | map                 | orderedmap              |
 | ----------- | ------------------- | ----------------------- |
