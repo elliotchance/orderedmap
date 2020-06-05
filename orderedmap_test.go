@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/elliotchance/orderedmap"
+	"github.com/prgsmall/orderedmap"
 	"github.com/stretchr/testify/assert"
 )
 
