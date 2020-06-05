@@ -2,6 +2,7 @@ package orderedmap
 
 import "container/list"
 
+// Element the ordered map data structure
 type Element struct {
 	Key, Value interface{}
 

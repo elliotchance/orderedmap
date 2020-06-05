@@ -9,9 +9,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewOrderedMap(t *testing.T) {
-	m := orderedmap.NewOrderedMap()
-	assert.IsType(t, &orderedmap.OrderedMap{}, m)
+func TestObjectCreation(t *testing.T) {
+	t.Run("TestNewOrderedMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.IsType(t, &orderedmap.OrderedMap{}, m)
+		assert.EqualValues(t, -1, m.Max())
+		assert.EqualValues(t, false, m.IsFull())
+	})
+
+	t.Run("TestNewOrderedMapWithMaxSize", func(t *testing.T) {
+		size := 777
+		m := orderedmap.NewOrderedMapWithMaxSize(size)
+		assert.IsType(t, &orderedmap.OrderedMap{}, m)
+		assert.Equal(t, size, m.Max())
+		assert.EqualValues(t, false, m.IsFull())
+	})
 }
 
 func TestGet(t *testing.T) {
@@ -151,6 +163,25 @@ func TestLen(t *testing.T) {
 		m.Set(2, true)
 		m.Set(3, true)
 		assert.Equal(t, 3, m.Len())
+	})
+
+	t.Run("ThreeElementsWithMax", func(t *testing.T) {
+		m := orderedmap.NewOrderedMapWithMaxSize(3)
+		assert.Equal(t, false, m.IsFull())
+		m.Set(1, true)
+		assert.Equal(t, false, m.IsFull())
+		m.Set(2, true)
+		assert.Equal(t, false, m.IsFull())
+		m.Set(3, true)
+		assert.Equal(t, 3, m.Len())
+		assert.Equal(t, true, m.IsFull())
+		assert.Equal(t, m.Front().Key, 1)
+
+		m.Set(4, true)
+		assert.Equal(t, 3, m.Len())
+		assert.Equal(t, true, m.IsFull())
+		assert.Equal(t, m.Front().Key, 2)
+		assert.Equal(t, m.Back().Key, 4)
 	})
 
 	t.Run("Performance", func(t *testing.T) {

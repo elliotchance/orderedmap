@@ -6,15 +6,28 @@ type orderedMapElement struct {
 	key, value interface{}
 }
 
+// OrderedMap the ordered map data structure
 type OrderedMap struct {
-	kv map[interface{}]*list.Element
-	ll *list.List
+	kv      map[interface{}]*list.Element
+	ll      *list.List
+	maxSize int
 }
 
+// NewOrderedMap creates a new ordered map of unlimited size
 func NewOrderedMap() *OrderedMap {
 	return &OrderedMap{
-		kv: make(map[interface{}]*list.Element),
-		ll: list.New(),
+		kv:      make(map[interface{}]*list.Element),
+		ll:      list.New(),
+		maxSize: -1,
+	}
+}
+
+// NewOrderedMapWithMaxSize creates a new ordered map with a maximum size
+func NewOrderedMapWithMaxSize(max int) *OrderedMap {
+	return &OrderedMap{
+		kv:      make(map[interface{}]*list.Element),
+		ll:      list.New(),
+		maxSize: max,
 	}
 }
 
@@ -31,11 +44,15 @@ func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
 
 // Set will set (or replace) a value for a key. If the key was new, then true
 // will be returned. The returned value will be false if the value was replaced
-// (even if the value was the same).
+// (even if the value was the same).  If a new key is being added and the map is
+// full, then the front element will be deleted to make room for the new element.
 func (m *OrderedMap) Set(key, value interface{}) bool {
 	_, didExist := m.kv[key]
 
 	if !didExist {
+		if m.IsFull() {
+			m.Delete(m.Front().Key)
+		}
 		element := m.ll.PushBack(&orderedMapElement{key, value})
 		m.kv[key] = element
 	} else {
@@ -58,6 +75,16 @@ func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
 // Len returns the number of elements in the map.
 func (m *OrderedMap) Len() int {
 	return len(m.kv)
+}
+
+// Max returns the maximum size of the map
+func (m *OrderedMap) Max() int {
+	return m.maxSize
+}
+
+// IsFull returns true if the number of elements in the map is maxSize
+func (m *OrderedMap) IsFull() bool {
+	return m.maxSize != -1 && m.Len() == m.maxSize
 }
 
 // Keys returns all of the keys in the order they were inserted. If a key was
