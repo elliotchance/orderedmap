@@ -2,9 +2,12 @@ package orderedmap_test
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"testing"
 
+	"bytes"
+	"encoding/json"
 	"github.com/elliotchance/orderedmap"
 	"github.com/stretchr/testify/assert"
 )
@@ -301,6 +304,92 @@ func TestOrderedMap_Back(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
 		m.Set(1, true)
 		assert.NotNil(t, m.Back())
+	})
+}
+
+func TestOrderedMap_MarshalJSON(t *testing.T) {
+	t.Run("MarshalJsonIntKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set(1, 1)
+		b, err := json.Marshal(m)
+		result := bytes.Equal([]byte(`[1,1]`), b) && nil == err
+
+		assert.True(t, result)
+	})
+
+	t.Run("MarshalJsonStringKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "boo")
+		b, err := json.Marshal(m)
+		result := bytes.Equal([]byte(`["foo","boo"]`), b) && nil == err
+
+		assert.True(t, result)
+	})
+
+	t.Run("MarshalJsonMixedKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "boo")
+		m.Set(1, 1)
+		m.Set("true", true)
+		b, err := json.Marshal(m)
+		result := bytes.Equal([]byte(`["foo","boo",1,1,"true",true]`), b) && nil == err
+
+		assert.True(t, result)
+	})
+
+	t.Run("Performance", func(t *testing.T) {
+	})
+}
+
+func TestOrderedMap_UnmarshalJSON(t *testing.T) {
+	t.Run("UnmarshalJsonIntKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`[1,1]`), m)
+		key := m.Keys()[0]
+
+		value, ok := m.Get(key)
+		t.Log(reflect.TypeOf(key), reflect.TypeOf(value))
+		result := nil == err && value == 1 && ok == true
+
+		assert.True(t, result)
+	})
+
+	t.Run("UnmarshalJsonStringKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`["foo","boo"]`), m)
+		t.Log(err)
+		value, ok := m.Get("foo")
+		result := nil == err && value == "boo" && ok == true
+
+		assert.True(t, result)
+	})
+
+	t.Run("UnmarshalJsonKeyValueUnMatch", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`["foo","boo",1]`), m)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("UnmarshalJsonMixedKeyValue", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`["foo","boo",1,1,"true",true]`), m)
+		result := err == nil
+		keys := []interface{}{"foo", 1, "true"}
+		for idx, key := range m.Keys() {
+			result = result && keys[idx] == key
+		}
+
+		value, ok := m.Get("foo")
+		result = result && value == "boo" && ok == true
+		value, ok = m.Get(1)
+		result = result && value == 1 && ok == true
+		value, ok = m.Get("true")
+		result = result && value == true && ok == true
+
+		assert.True(t, result)
+	})
+
+	t.Run("Performance", func(t *testing.T) {
 	})
 }
 
