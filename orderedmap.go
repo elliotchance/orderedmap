@@ -3,6 +3,7 @@ package orderedmap
 import (
 	"container/list"
 	"encoding/json"
+	"errors"
 )
 
 type orderedMapElement struct {
@@ -124,35 +125,39 @@ func (m *OrderedMap) Back() *Element {
 	}
 }
 
-type Item [2]interface{}
-type Collection []Item
-
 // marshal json to save
-func (m *OrderedMap) MarshalJSON() ([]byte,error) {
+func (m *OrderedMap) MarshalJSON() ([]byte, error) {
 	var keys = m.Keys()
-	var count = len(keys)
-	var collection = make(Collection, count)
+	var collection = make([]interface{}, 0, len(keys)*2)
 	var data interface{}
-	for idx,key := range keys{
-		data,_ = m.Get(key)
-		collection[idx] = Item{key, data}
+	for _, key := range keys {
+		data, _ = m.Get(key)
+		collection = append(collection, key)
+		collection = append(collection, data)
 	}
 
 	return json.Marshal(collection)
 }
 
 // unmarshal json to load byte
-func (m *OrderedMap)UnmarshalJSON(data []byte) error  {
-	var collection Collection
+func (m *OrderedMap) UnmarshalJSON(data []byte) error {
+	var collection []interface{}
 	err := json.Unmarshal(data, &collection)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	for _, item := range collection{
-		m.Set(item[0],item[1])
+	length := len(collection)
+	count := length >> 1
+	if count<<1 != length {
+		return errors.New("invalid data, key-value doesn't match")
+	}
+
+	var idx int
+	for i := 0; i < count; i++ {
+		idx = i << 1
+		m.Set(collection[idx], collection[idx+1])
 	}
 
 	return nil
 }
-
