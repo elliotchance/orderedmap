@@ -1,6 +1,9 @@
 package orderedmap
 
-import "container/list"
+import (
+	"container/list"
+	"encoding/json"
+)
 
 type orderedMapElement struct {
 	key, value interface{}
@@ -120,3 +123,34 @@ func (m *OrderedMap) Back() *Element {
 		Value:   element.value,
 	}
 }
+
+type Item [2]interface{}
+type Collection []Item
+
+func (m *OrderedMap) MarshalJSON() ([]byte,error) {
+	var keys = m.Keys()
+	var count = len(keys)
+	var collection = make(Collection, count)
+	var data interface{}
+	for idx,key := range keys{
+		data,_ = m.Get(key)
+		collection[idx] = Item{key, data}
+	}
+
+	return json.Marshal(collection)
+}
+
+func (m *OrderedMap)UnmarshalJSON(data []byte) error  {
+	var collection Collection
+	err := json.Unmarshal(data, &collection)
+	if err != nil{
+		return err
+	}
+
+	for _, item := range collection{
+		m.Set(item[0],item[1])
+	}
+
+	return nil
+}
+
