@@ -127,6 +127,7 @@ func (m *OrderedMap) Back() *Element {
 type Item [2]interface{}
 type Collection []Item
 
+// marshal json to save
 func (m *OrderedMap) MarshalJSON() ([]byte,error) {
 	var keys = m.Keys()
 	var count = len(keys)
@@ -140,6 +141,7 @@ func (m *OrderedMap) MarshalJSON() ([]byte,error) {
 	return json.Marshal(collection)
 }
 
+// unmarshal json to load byte
 func (m *OrderedMap)UnmarshalJSON(data []byte) error  {
 	var collection Collection
 	err := json.Unmarshal(data, &collection)
