@@ -45,6 +45,22 @@ func (m *OrderedMap) Set(key, value interface{}) bool {
 	return !didExist
 }
 
+// GetElement returns the element for a key. If the key does not exist, the
+// second return parameter will be false and the pointer will be nil.
+func (m *OrderedMap) GetElement(key interface{}) (*Element, bool) {
+	value, ok := m.kv[key]
+	if ok {
+		element := value.Value.(*orderedMapElement)
+		return &Element{
+			element: value,
+			Key:     element.key,
+			Value:   element.value,
+		}, true
+	}
+
+	return nil, false
+}
+
 // GetOrDefault returns the value for a key. If the key does not exist, returns
 // the default value instead.
 func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
