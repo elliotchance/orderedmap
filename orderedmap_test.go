@@ -305,62 +305,23 @@ func TestOrderedMap_Back(t *testing.T) {
 }
 
 func TestGetElement(t *testing.T) {
-	t.Run("ReturnsNotOKIfStringKeyDoesntExist", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		_, ok := m.GetElement("foo")
-		assert.False(t, ok)
-	})
-
-	t.Run("ReturnsNotOKIfNonStringKeyDoesntExist", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		_, ok := m.GetElement(123)
-		assert.False(t, ok)
-	})
-
-	t.Run("ReturnsOKIfKeyExists", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		m.Set("foo", "bar")
-		_, ok := m.GetElement("foo")
-		assert.True(t, ok)
-	})
-
 	t.Run("ReturnsElementForKey", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
 		m.Set("foo", "bar")
 
 		var results []interface{}
-		element, _ := m.GetElement("foo")
+		element := m.GetElement("foo")
 		if element != nil {
 			results = append(results, element.Key, element.Value)
 		}
 
 		assert.Equal(t, []interface{}{"foo", "bar"}, results)
-	})
-
-	t.Run("ReturnsDynamicValueForKey", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		m.Set("foo", "bar")
-
-		var results []interface{}
-		element, _ := m.GetElement("foo")
-		if element != nil {
-			results = append(results, element.Key, element.Value)
-		}
-
-		assert.Equal(t, []interface{}{"foo", "bar"}, results)
-	})
-
-	t.Run("KeyDoesntExistOnNonEmptyMap", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		m.Set("foo", "baz")
-		_, ok := m.GetElement("bar")
-		assert.False(t, ok)
 	})
 
 	t.Run("ElementForKeyDoesntExistOnNonEmptyMap", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
 		m.Set("foo", "baz")
-		element, _ := m.GetElement("bar")
+		element := m.GetElement("bar")
 		assert.Nil(t, element)
 	})
 
