@@ -1,7 +1,9 @@
 package orderedmap
 
 import (
+	"bytes"
 	"container/list"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 )
@@ -136,13 +138,27 @@ func (m *OrderedMap) MarshalJSON() ([]byte, error) {
 		collection = append(collection, data)
 	}
 
-	return json.Marshal(collection)
+	var buf = new(bytes.Buffer)
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(collection)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(buf.Bytes())
 }
 
 // unmarshal json to load byte
 func (m *OrderedMap) UnmarshalJSON(data []byte) error {
+	var bys []byte
+	err := json.Unmarshal(data, &bys)
+	if err != nil {
+		return err
+	}
+
 	var collection []interface{}
-	err := json.Unmarshal(data, &collection)
+	var buf = bytes.NewReader(bys)
+	dec := gob.NewDecoder(buf)
+	err = dec.Decode(&collection)
 	if err != nil {
 		return err
 	}

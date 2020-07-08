@@ -2,7 +2,6 @@ package orderedmap_test
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"testing"
 
@@ -312,7 +311,8 @@ func TestOrderedMap_MarshalJSON(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
 		m.Set(1, 1)
 		b, err := json.Marshal(m)
-		result := bytes.Equal([]byte(`[1,1]`), b) && nil == err
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 66, 84, 47, 103, 103, 65, 67, 65, 50, 108, 117, 100, 65, 81, 67, 65, 65, 73, 68, 97, 87, 53, 48, 66, 65, 73, 65, 65, 103, 61, 61, 34}
+		result := bytes.Equal(bys, b) && nil == err
 
 		assert.True(t, result)
 	})
@@ -321,18 +321,20 @@ func TestOrderedMap_MarshalJSON(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
 		m.Set("foo", "boo")
 		b, err := json.Marshal(m)
-		result := bytes.Equal([]byte(`["foo","boo"]`), b) && nil == err
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 67, 68, 47, 103, 103, 65, 67, 66, 110, 78, 48, 99, 109, 108, 117, 90, 119, 119, 70, 65, 65, 78, 109, 98, 50, 56, 71, 99, 51, 82, 121, 97, 87, 53, 110, 68, 65, 85, 65, 65, 50, 74, 118, 98, 119, 61, 61, 34}
+		result := bytes.Equal(bys, b) && nil == err
 
 		assert.True(t, result)
 	})
 
 	t.Run("MarshalJsonMixedKeyValue", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
-		m.Set("foo", "boo")
 		m.Set(1, 1)
+		m.Set("foo", "boo")
 		m.Set("true", true)
 		b, err := json.Marshal(m)
-		result := bytes.Equal([]byte(`["foo","boo",1,1,"true",true]`), b) && nil == err
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 69, 106, 47, 103, 103, 65, 71, 65, 50, 108, 117, 100, 65, 81, 67, 65, 65, 73, 68, 97, 87, 53, 48, 66, 65, 73, 65, 65, 103, 90, 122, 100, 72, 74, 112, 98, 109, 99, 77, 66, 81, 65, 68, 90, 109, 57, 118, 66, 110, 78, 48, 99, 109, 108, 117, 90, 119, 119, 70, 65, 65, 78, 105, 98, 50, 56, 71, 99, 51, 82, 121, 97, 87, 53, 110, 68, 65, 89, 65, 66, 72, 82, 121, 100, 87, 85, 69, 89, 109, 57, 118, 98, 65, 73, 67, 65, 65, 69, 61, 34}
+		result := bytes.Equal(bys, b) && nil == err
 
 		assert.True(t, result)
 	})
@@ -344,11 +346,9 @@ func TestOrderedMap_MarshalJSON(t *testing.T) {
 func TestOrderedMap_UnmarshalJSON(t *testing.T) {
 	t.Run("UnmarshalJsonIntKeyValue", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
-		err := json.Unmarshal([]byte(`[1,1]`), m)
-		key := m.Keys()[0]
-
-		value, ok := m.Get(key)
-		t.Log(reflect.TypeOf(key), reflect.TypeOf(value))
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 66, 84, 47, 103, 103, 65, 67, 65, 50, 108, 117, 100, 65, 81, 67, 65, 65, 73, 68, 97, 87, 53, 48, 66, 65, 73, 65, 65, 103, 61, 61, 34}
+		err := json.Unmarshal(bys, m)
+		value, ok := m.Get(1)
 		result := nil == err && value == 1 && ok == true
 
 		assert.True(t, result)
@@ -356,25 +356,21 @@ func TestOrderedMap_UnmarshalJSON(t *testing.T) {
 
 	t.Run("UnmarshalJsonStringKeyValue", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
-		err := json.Unmarshal([]byte(`["foo","boo"]`), m)
-		t.Log(err)
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 67, 68, 47, 103, 103, 65, 67, 66, 110, 78, 48, 99, 109, 108, 117, 90, 119, 119, 70, 65, 65, 78, 109, 98, 50, 56, 71, 99, 51, 82, 121, 97, 87, 53, 110, 68, 65, 85, 65, 65, 50, 74, 118, 98, 119, 61, 61, 34}
+		err := json.Unmarshal(bys, m)
 		value, ok := m.Get("foo")
 		result := nil == err && value == "boo" && ok == true
 
 		assert.True(t, result)
 	})
 
-	t.Run("UnmarshalJsonKeyValueUnMatch", func(t *testing.T) {
-		m := orderedmap.NewOrderedMap()
-		err := json.Unmarshal([]byte(`["foo","boo",1]`), m)
-		assert.NotNil(t, err)
-	})
-
 	t.Run("UnmarshalJsonMixedKeyValue", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()
-		err := json.Unmarshal([]byte(`["foo","boo",1,1,"true",true]`), m)
+		var bys = []byte{34, 68, 80, 43, 66, 65, 103, 69, 67, 47, 52, 73, 65, 65, 82, 65, 65, 65, 69, 106, 47, 103, 103, 65, 71, 65, 50, 108, 117, 100, 65, 81, 67, 65, 65, 73, 68, 97, 87, 53, 48, 66, 65, 73, 65, 65, 103, 90, 122, 100, 72, 74, 112, 98, 109, 99, 77, 66, 81, 65, 68, 90, 109, 57, 118, 66, 110, 78, 48, 99, 109, 108, 117, 90, 119, 119, 70, 65, 65, 78, 105, 98, 50, 56, 71, 99, 51, 82, 121, 97, 87, 53, 110, 68, 65, 89, 65, 66, 72, 82, 121, 100, 87, 85, 69, 89, 109, 57, 118, 98, 65, 73, 67, 65, 65, 69, 61, 34}
+		err := json.Unmarshal(bys, m)
 		result := err == nil
-		keys := []interface{}{"foo", 1, "true"}
+		keys := []interface{}{1, "foo", "true"}
+		result = result && len(m.Keys()) == len(keys)
 		for idx, key := range m.Keys() {
 			result = result && keys[idx] == key
 		}
