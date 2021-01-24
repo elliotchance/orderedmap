@@ -304,6 +304,16 @@ func TestOrderedMap_Back(t *testing.T) {
 	})
 }
 
+func TestOrderedMap_Copy(t *testing.T) {
+	t.Run("ReturnsEqualButNotSame", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m2 := m.Copy()
+
+		assert.Equal(t, m, m2)
+		assert.NotSame(t, m, m2)
+	})
+}
+
 func TestGetElement(t *testing.T) {
 	t.Run("ReturnsElementForKey", func(t *testing.T) {
 		m := orderedmap.NewOrderedMap()

@@ -136,3 +136,10 @@ func (m *OrderedMap) Back() *Element {
 		Value:   element.value,
 	}
 }
+
+// Copy will return a pointer to a new instances OrderedMap that is
+// a copy of the existing one
+func (m *OrderedMap) Copy() *OrderedMap {
+	m2 := *m
+	return &m2
+}
