@@ -137,9 +137,15 @@ func (m *OrderedMap) Back() *Element {
 	}
 }
 
-// Copy will return a pointer to a new instances OrderedMap that is
-// a copy of the existing one
+// Copy returns a new OrderedMap with the same elements.
+// The elements deep copied. That is changes to the original OrderedMap will not affect elements in the new OrderedMap.
+// Using Copy while there are concurrent writes may mangle the result.
 func (m *OrderedMap) Copy() *OrderedMap {
-	m2 := *m
-	return &m2
+	m2 := NewOrderedMap()
+
+	for el := m.Front(); el != nil; el = el.Next() {
+		m2.Set(el.Key, el.Value)
+	}
+
+	return m2
 }
