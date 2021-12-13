@@ -1,6 +1,7 @@
 package orderedmap
 
 import "container/list"
+import "reflect"
 
 type orderedMapElement struct {
 	key, value interface{}
@@ -21,6 +22,8 @@ func NewOrderedMap() *OrderedMap {
 // Get returns the value for a key. If the key does not exist, the second return
 // parameter will be false and the value will be nil.
 func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
+	if !keyLegal(key)
+		return nil, false
 	value, ok := m.kv[key]
 	if ok {
 		return value.Value.(*orderedMapElement).value, true
@@ -33,6 +36,8 @@ func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
 // will be returned. The returned value will be false if the value was replaced
 // (even if the value was the same).
 func (m *OrderedMap) Set(key, value interface{}) bool {
+	if !keyLegal(key)
+		return
 	_, didExist := m.kv[key]
 
 	if !didExist {
@@ -48,6 +53,8 @@ func (m *OrderedMap) Set(key, value interface{}) bool {
 // GetOrDefault returns the value for a key. If the key does not exist, returns
 // the default value instead.
 func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
+	if !keyLegal(key)
+		return defaultValue
 	if value, ok := m.kv[key]; ok {
 		return value.Value.(*orderedMapElement).value
 	}
@@ -58,6 +65,8 @@ func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
 // GetElement returns the element for a key. If the key does not exist, the
 // pointer will be nil.
 func (m *OrderedMap) GetElement(key interface{}) *Element {
+	if !keyLegal(key)
+		return nil
 	value, ok := m.kv[key]
 	if ok {
 		element := value.Value.(*orderedMapElement)
@@ -94,6 +103,8 @@ func (m *OrderedMap) Keys() (keys []interface{}) {
 // Delete will remove a key from the map. It will return true if the key was
 // removed (the key did exist).
 func (m *OrderedMap) Delete(key interface{}) (didDelete bool) {
+	if !keyLegal(key)
+		return
 	element, ok := m.kv[key]
 	if ok {
 		m.ll.Remove(element)
@@ -147,4 +158,13 @@ func (m *OrderedMap) Copy() *OrderedMap {
 	}
 
 	return m2
+}
+
+// Check the type of key, according to go spec, key type must not be a function, map, or slice
+func keyLegal(key interface{}) bool {
+	switch reflect.TypeOf(key).Kind() {
+	case reflect.Ptr, reflect.Func, reflect.Slice:
+		return false
+	}
+	return true
 }
