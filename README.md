@@ -21,7 +21,7 @@ m.Set(123, true)
 m.Delete("qux")
 ```
 
-Internally an `*OrderedMap` uses a combination of a map and linked list.
+Internally an `*OrderedMap` uses the composite type [map](https://go.dev/blog/maps) combined with a [linked list](https://pkg.go.dev/container/list) to maintain the order.
 
 ## Iterating
 
