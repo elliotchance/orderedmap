@@ -251,6 +251,43 @@ func TestGetElement(t *testing.T) {
 	})
 }
 
+func TestSetAndGet(t *testing.T) {
+	t.Run("FourBoolElements", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[int, bool]()
+		expected := map[int]bool{1: true, 3: false, 5: false, 4: true}
+		for k, v := range expected {
+			m.Set(k, v)
+		}
+		for k, v := range expected {
+			w, ok := m.Get(k)
+			assert.True(t, ok)
+			assert.Equal(t, v, w)
+		}
+	})
+}
+
+func TestIterations(t *testing.T) {
+	type Element struct {
+		Key   int
+		Value bool
+	}
+	t.Run("FourBoolElements", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[int, bool]()
+		expected := []Element{{5, true}, {3, false}, {1, false}, {4, true}}
+		for _, v := range expected {
+			m.Set(v.Key, v.Value)
+		}
+		element := m.Front()
+		for i := 0; i < len(expected); i++ {
+			assert.NotNil(t, element)
+			assert.Equal(t, expected[i].Key, element.Key)
+			assert.Equal(t, expected[i].Value, element.Value)
+			element = element.Next()
+		}
+		assert.Nil(t, element)
+	})
+}
+
 func benchmarkMap_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := make(map[int]bool)
