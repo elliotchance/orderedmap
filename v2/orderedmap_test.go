@@ -1,6 +1,7 @@
 package orderedmap_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/elliotchance/orderedmap/v2"
@@ -248,4 +249,48 @@ func TestGetElement(t *testing.T) {
 		element := m.GetElement("bar")
 		assert.Nil(t, element)
 	})
+}
+
+func TestOrderedMapJSON(t *testing.T) {
+	t.Run("EmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[int, string]()
+		json, err := json.Marshal(m)
+
+		assert.NoError(t, err)
+		assert.Equal(t, `{}`, string(json))
+	})
+
+	t.Run("InvalidJSON", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[int, any]()
+		m.Set(1, struct{ Foo string }{"bar"})
+
+		_, err := json.Marshal(m)
+		assert.Error(t, err)
+	})
+
+	t.Run("MarshalJSON", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[string, any]()
+		m.Set("string", "foo")
+		m.Set("number", 1337)
+		m.Set("slice", []string{"foo", "bar"})
+		m.Set("map", map[string]string{"foo": "bar"})
+		m.Set("bool", true)
+		m.Set("nil", nil)
+		m.Set("struct", struct {
+			Foo string `json:"foo_tag"`
+		}{"bar"})
+
+		m2 := orderedmap.NewOrderedMap[string, any]()
+		m2.Set("string", "foo")
+		m2.Set("number", 1337)
+		m2.Set("slice", []string{"foo", "bar"})
+
+		m.Set("orderedMap", m2)
+
+		json, err := json.Marshal(m)
+
+		assert.NoError(t, err)
+		assert.Equal(t, `{"string":"foo","number":1337,"slice":["foo","bar"],"map":{"foo":"bar"},"bool":true,"nil":null,"struct":{"foo_tag":"bar"},"orderedMap":{"string":"foo","number":1337,"slice":["foo","bar"]}}`, string(json))
+	})
+
 }
