@@ -1,7 +1,10 @@
 package orderedmap
 
 import (
+	"bytes"
 	"container/list"
+	"encoding/json"
+
 	"golang.org/x/exp/constraints"
 )
 
@@ -151,4 +154,29 @@ func (m *OrderedMap[K, V]) Copy() *OrderedMap[K, V] {
 	}
 
 	return m2
+}
+
+// Implements JSON marshaling.
+func (m *OrderedMap[string, V]) MarshalJSON() ([]byte, error) {
+	if m.Len() == 0 {
+		return []byte("{}"), nil
+	}
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	encoder := json.NewEncoder(&buf)
+	for el := m.Front(); el != nil; el = el.Next() {
+		// add key
+		if err := encoder.Encode(el.Key); err != nil {
+			return nil, err
+		}
+		buf.WriteByte(':')
+		// add value
+		if err := encoder.Encode(el.Value); err != nil {
+			return nil, err
+		}
+		buf.WriteByte(',')
+	}
+	buf.Truncate(buf.Len() - 1)
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
 }
