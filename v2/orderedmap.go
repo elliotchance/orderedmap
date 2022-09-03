@@ -2,20 +2,19 @@ package orderedmap
 
 import (
 	"container/list"
-	"golang.org/x/exp/constraints"
 )
 
-type orderedMapElement[K constraints.Ordered, V any] struct {
+type orderedMapElement[K comparable, V any] struct {
 	key   K
 	value V
 }
 
-type OrderedMap[K constraints.Ordered, V any] struct {
+type OrderedMap[K comparable, V any] struct {
 	kv map[K]*list.Element
 	ll *list.List
 }
 
-func NewOrderedMap[K constraints.Ordered, V any]() *OrderedMap[K, V] {
+func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
 		kv: make(map[K]*list.Element),
 		ll: list.New(),
