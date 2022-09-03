@@ -2,17 +2,16 @@ package orderedmap
 
 import (
 	"container/list"
-	"golang.org/x/exp/constraints"
 )
 
-type Element[K constraints.Ordered, V any] struct {
+type Element[K comparable, V any] struct {
 	Key   K
 	Value V
 
 	element *list.Element
 }
 
-func newElement[K constraints.Ordered, V any](e *list.Element) *Element[K, V] {
+func newElement[K comparable, V any](e *list.Element) *Element[K, V] {
 	if e == nil {
 		return nil
 	}
