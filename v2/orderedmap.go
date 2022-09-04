@@ -6,11 +6,9 @@ type OrderedMap[K comparable, V any] struct {
 }
 
 func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
-	m := &OrderedMap[K, V]{
+	return &OrderedMap[K, V]{
 		kv: make(map[K]*Element[K, V]),
 	}
-	m.ll.Init()
-	return m
 }
 
 // Get returns the value for a key. If the key does not exist, the second return
