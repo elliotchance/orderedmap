@@ -24,7 +24,7 @@ below, you can use v1.
 
 Internally an `*OrderedMap` uses the composite type
 [map](https://go.dev/blog/maps) combined with a
-[linked list](https://pkg.go.dev/container/list) to maintain the order.
+trimmed down linked list to maintain the order.
 
 ## Iterating
 
