@@ -1,29 +1,22 @@
 package orderedmap
 
-import "container/list"
-
-type orderedMapElement struct {
-	key, value interface{}
-}
-
 type OrderedMap struct {
-	kv map[interface{}]*list.Element
-	ll *list.List
+	kv map[interface{}]*Element
+	ll list
 }
 
 func NewOrderedMap() *OrderedMap {
 	return &OrderedMap{
-		kv: make(map[interface{}]*list.Element),
-		ll: list.New(),
+		kv: make(map[interface{}]*Element),
 	}
 }
 
 // Get returns the value for a key. If the key does not exist, the second return
 // parameter will be false and the value will be nil.
 func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
-	value, ok := m.kv[key]
+	element, ok := m.kv[key]
 	if ok {
-		return value.Value.(*orderedMapElement).value, true
+		return element.Value, true
 	}
 
 	return nil, false
@@ -33,23 +26,22 @@ func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
 // will be returned. The returned value will be false if the value was replaced
 // (even if the value was the same).
 func (m *OrderedMap) Set(key, value interface{}) bool {
-	_, didExist := m.kv[key]
-
-	if !didExist {
-		element := m.ll.PushBack(&orderedMapElement{key, value})
-		m.kv[key] = element
-	} else {
-		m.kv[key].Value.(*orderedMapElement).value = value
+	_, alreadyExist := m.kv[key]
+	if alreadyExist {
+		m.kv[key].Value = value
+		return false
 	}
 
-	return !didExist
+	element := m.ll.PushBack(key, value)
+	m.kv[key] = element
+	return true
 }
 
 // GetOrDefault returns the value for a key. If the key does not exist, returns
 // the default value instead.
 func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
-	if value, ok := m.kv[key]; ok {
-		return value.Value.(*orderedMapElement).value
+	if element, ok := m.kv[key]; ok {
+		return element.Value
 	}
 
 	return defaultValue
@@ -58,14 +50,9 @@ func (m *OrderedMap) GetOrDefault(key, defaultValue interface{}) interface{} {
 // GetElement returns the element for a key. If the key does not exist, the
 // pointer will be nil.
 func (m *OrderedMap) GetElement(key interface{}) *Element {
-	value, ok := m.kv[key]
+	element, ok := m.kv[key]
 	if ok {
-		element := value.Value.(*orderedMapElement)
-		return &Element{
-			element: value,
-			Key:     element.key,
-			Value:   element.value,
-		}
+		return element
 	}
 
 	return nil
@@ -80,14 +67,10 @@ func (m *OrderedMap) Len() int {
 // replaced it will retain the same position. To ensure most recently set keys
 // are always at the end you must always Delete before Set.
 func (m *OrderedMap) Keys() (keys []interface{}) {
-	keys = make([]interface{}, m.Len())
-
-	element := m.ll.Front()
-	for i := 0; element != nil; i++ {
-		keys[i] = element.Value.(*orderedMapElement).key
-		element = element.Next()
+	keys = make([]interface{}, 0, m.Len())
+	for el := m.Front(); el != nil; el = el.Next() {
+		keys = append(keys, el.Key)
 	}
-
 	return keys
 }
 
@@ -106,35 +89,13 @@ func (m *OrderedMap) Delete(key interface{}) (didDelete bool) {
 // Front will return the element that is the first (oldest Set element). If
 // there are no elements this will return nil.
 func (m *OrderedMap) Front() *Element {
-	front := m.ll.Front()
-	if front == nil {
-		return nil
-	}
-
-	element := front.Value.(*orderedMapElement)
-
-	return &Element{
-		element: front,
-		Key:     element.key,
-		Value:   element.value,
-	}
+	return m.ll.Front()
 }
 
 // Back will return the element that is the last (most recent Set element). If
 // there are no elements this will return nil.
 func (m *OrderedMap) Back() *Element {
-	back := m.ll.Back()
-	if back == nil {
-		return nil
-	}
-
-	element := back.Value.(*orderedMapElement)
-
-	return &Element{
-		element: back,
-		Key:     element.key,
-		Value:   element.value,
-	}
+	return m.ll.Back()
 }
 
 // Copy returns a new OrderedMap with the same elements.
