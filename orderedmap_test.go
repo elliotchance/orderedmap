@@ -67,8 +67,8 @@ func TestGet(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_Get(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_Get(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_Get(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_Get(400))
 
 		// O(1) would mean that res4 should take about the same time as res1,
 		// because we are accessing the same amount of elements, just on
@@ -119,8 +119,8 @@ func TestSet(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_Set(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_Set(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_Set(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_Set(400))
 
 		// O(1) would mean that res4 should take about 4 times longer than res1
 		// because we are doing 4 times the amount of Set operations. Allow for
@@ -158,8 +158,8 @@ func TestLen(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_Len(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_Len(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_Len(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_Len(400))
 
 		// O(1) would mean that res4 should take about the same time as res1,
 		// because we are accessing the same amount of elements, just on
@@ -216,8 +216,8 @@ func TestKeys(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_Keys(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_Keys(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_Keys(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_Keys(400))
 
 		// O(1) would mean that res4 should take about 4 times longer than res1
 		// because we are doing 4 times the amount of Set/Delete operations.
@@ -264,8 +264,8 @@ func TestDelete(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_Delete(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_Delete(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_Delete(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_Delete(400))
 
 		// O(1) would mean that res4 should take about 4 times longer than res1
 		// because we are doing 4 times the amount of Set/Delete operations.
@@ -344,8 +344,8 @@ func TestGetElement(t *testing.T) {
 			t.Skip("performance test skipped in short mode")
 		}
 
-		res1 := testing.Benchmark(benchmarkOrderedMap_GetElement(1))
-		res4 := testing.Benchmark(benchmarkOrderedMap_GetElement(4))
+		res1 := testing.Benchmark(benchmarkOrderedMap_GetElement(100))
+		res4 := testing.Benchmark(benchmarkOrderedMap_GetElement(400))
 
 		// O(1) would mean that res4 should take about the same time as res1,
 		// because we are accessing the same amount of elements, just on
