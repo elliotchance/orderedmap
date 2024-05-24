@@ -37,6 +37,21 @@ func (m *OrderedMap[K, V]) Set(key K, value V) bool {
 	return true
 }
 
+// ReplaceKey replaces an existing key with a new key while preserving order of
+// the value. This function will return true if the operation was successful, or
+// false if 'originalKey' is not found OR 'newKey' already exists (which would be an overwrite).
+func (m *OrderedMap[K, V]) ReplaceKey(originalKey, newKey K) bool {
+	element, originalExists := m.kv[originalKey]
+	_, newKeyExists := m.kv[newKey]
+	if originalExists && !newKeyExists {
+		delete(m.kv, originalKey)
+		m.kv[newKey] = element
+		element.Key = newKey
+		return true
+	}
+	return false
+}
+
 // GetOrDefault returns the value for a key. If the key does not exist, returns
 // the default value instead.
 func (m *OrderedMap[K, V]) GetOrDefault(key K, defaultValue V) V {

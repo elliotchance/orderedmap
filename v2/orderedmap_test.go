@@ -6,6 +6,7 @@ import (
 
 	"github.com/elliotchance/orderedmap/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewOrderedMap(t *testing.T) {
@@ -94,6 +95,68 @@ func TestSet(t *testing.T) {
 		m.Set("baz", "qux")
 		ok := m.Set("quux", "corge")
 		assert.True(t, ok)
+	})
+}
+
+func TestReplaceKey(t *testing.T) {
+	t.Run("ReturnsFalseIfOriginalKeyDoesntExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[string, string]()
+		assert.False(t, m.ReplaceKey("foo", "bar"))
+	})
+
+	t.Run("ReturnsFalseIfNewKeyAlreadyExists", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[string, string]()
+		m.Set("foo", "bar")
+		m.Set("baz", "qux")
+		assert.False(t, m.ReplaceKey("foo", "baz"))
+		assert.Equal(t, []string{"foo", "baz"}, m.Keys())
+	})
+
+	t.Run("ReturnsTrueIfOnlyOriginalKeyExists", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap[string, string]()
+		m.Set("foo", "bar")
+		assert.True(t, m.ReplaceKey("foo", "baz"))
+
+		// Now validate the "replacement" was a success.
+		el := m.GetElement("baz")
+		require.NotNil(t, el)
+		assert.Equal(t, "bar", el.Value)
+		assert.Equal(t, "baz", el.Key)
+
+		v, ok := m.Get("baz")
+		assert.True(t, ok)
+		assert.Equal(t, "bar", v)
+		assert.Equal(t, []string{"baz"}, m.Keys())
+		assert.Equal(t, 1, m.Len())
+
+		_, ok = m.Get("foo") // original key
+		assert.False(t, ok)
+	})
+
+	t.Run("KeyMaintainsOrderWhenReplaced", func(t *testing.T) {
+		count := 100
+		// Build a larger map to help validate that the order is not coincidental.
+		m := orderedmap.NewOrderedMap[int, int]()
+		for i := 0; i < count; i++ {
+			m.Set(i, i)
+		}
+		// Rename the middle 50-60 elements to 100+ current
+		for i := 50; i < 60; i++ {
+			assert.True(t, m.ReplaceKey(i, i+100))
+		}
+
+		// ensure length is maintained
+		assert.Equal(t, count, m.Len())
+
+		// Validate the order is maintained.
+		keys := m.Keys()
+		for i, key := range keys {
+			if i >= 50 && i < 60 {
+				assert.Equal(t, i+100, key)
+			} else {
+				assert.Equal(t, i, key)
+			}
+		}
 	})
 }
 
@@ -909,7 +972,8 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkBigOrderedMap_Set", BenchmarkBigOrderedMap_Set)
 	b.Run("BenchmarkBigMap_Get", BenchmarkBigMap_Get)
 	b.Run("BenchmarkBigOrderedMap_Get", BenchmarkBigOrderedMap_Get)
-	b.Run("BenchmarkBigOrderedMap_GetElement", BenchmarkBigOrderedMap_GetElement)
+	b.Run("BenchmarkBigOrderedMap_GetElement",
+		BenchmarkBigOrderedMap_GetElement)
 	b.Run("BenchmarkBigOrderedMap_Iterate", BenchmarkBigOrderedMap_Iterate)
 	b.Run("BenchmarkBigMap_Iterate", BenchmarkBigMap_Iterate)
 
@@ -917,17 +981,21 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMapString_Set", BenchmarkMapString_Set)
 	b.Run("BenchmarkOrderedMapString_Get", BenchmarkOrderedMapString_Get)
 	b.Run("BenchmarkMapString_Get", BenchmarkMapString_Get)
-	b.Run("BenchmarkOrderedMapString_GetElement", BenchmarkOrderedMapString_GetElement)
+	b.Run("BenchmarkOrderedMapString_GetElement",
+		BenchmarkOrderedMapString_GetElement)
 	b.Run("BenchmarkOrderedMapString_Delete", BenchmarkOrderedMapString_Delete)
 	b.Run("BenchmarkMapString_Delete", BenchmarkMapString_Delete)
-	b.Run("BenchmarkOrderedMapString_Iterate", BenchmarkOrderedMapString_Iterate)
+	b.Run("BenchmarkOrderedMapString_Iterate",
+		BenchmarkOrderedMapString_Iterate)
 	b.Run("BenchmarkMapString_Iterate", BenchmarkMapString_Iterate)
 
 	b.Run("BenchmarkBigMapString_Set", BenchmarkBigMapString_Set)
 	b.Run("BenchmarkBigOrderedMapString_Set", BenchmarkBigOrderedMapString_Set)
 	b.Run("BenchmarkBigMapString_Get", BenchmarkBigMapString_Get)
 	b.Run("BenchmarkBigOrderedMapString_Get", BenchmarkBigOrderedMapString_Get)
-	b.Run("BenchmarkBigOrderedMapString_GetElement", BenchmarkBigOrderedMapString_GetElement)
-	b.Run("BenchmarkBigOrderedMapString_Iterate", BenchmarkBigOrderedMapString_Iterate)
+	b.Run("BenchmarkBigOrderedMapString_GetElement",
+		BenchmarkBigOrderedMapString_GetElement)
+	b.Run("BenchmarkBigOrderedMapString_Iterate",
+		BenchmarkBigOrderedMapString_Iterate)
 	b.Run("BenchmarkBigMapString_Iterate", BenchmarkBigMapString_Iterate)
 }
