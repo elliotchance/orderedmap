@@ -52,6 +52,20 @@ for el := m.Back(); el != nil; el = el.Prev() {
 }
 ```
 
+In case you're using Go 1.23, you can also [iterate with
+`range`](https://go.dev/doc/go1.23#iterators) by using `Iterator()` or
+`ReverseIterator()` methods:
+
+```go
+for key, value := range m.Iterator() {
+    fmt.Println(key, value)
+}
+
+for key, value := range m.ReverseIterator() {
+    fmt.Println(key, value)
+}
+```
+
 The iterator is safe to use bidirectionally, and will return `nil` once it goes
 beyond the first or last item.
 
