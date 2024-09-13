@@ -5,10 +5,14 @@ type OrderedMap[K comparable, V any] struct {
 	ll list[K, V]
 }
 
-func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
-	return &OrderedMap[K, V]{
-		kv: make(map[K]*Element[K, V]),
+func NewOrderedMap[K comparable, V any](els ...*Element[K, V]) *OrderedMap[K, V] {
+	om := &OrderedMap[K, V]{
+		kv: make(map[K]*Element[K, V], len(els)),
 	}
+	for _, el := range els {
+		om.Set(el.Key, el.Value)
+	}
+	return om
 }
 
 // Get returns the value for a key. If the key does not exist, the second return
