@@ -11,6 +11,16 @@ func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
 	}
 }
 
+func NewOrderedMapWithElements[K comparable, V any](els ...*Element[K, V]) *OrderedMap[K, V] {
+	om := &OrderedMap[K, V]{
+		kv: make(map[K]*Element[K, V], len(els)),
+	}
+	for _, el := range els {
+		om.Set(el.Key, el.Value)
+	}
+	return om
+}
+
 // Get returns the value for a key. If the key does not exist, the second return
 // parameter will be false and the value will be nil.
 func (m *OrderedMap[K, V]) Get(key K) (value V, ok bool) {
