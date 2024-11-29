@@ -5,9 +5,13 @@ type OrderedMap[K comparable, V any] struct {
 	ll list[K, V]
 }
 
-func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
+func NewOrderedMap[K comparable, V any](size ...int) *OrderedMap[K, V] {
+	var size0 = 0
+	if len(size) > 0 && size[0] > 0 {
+		size0 = size[0]
+	}
 	return &OrderedMap[K, V]{
-		kv: make(map[K]*Element[K, V]),
+		kv: make(map[K]*Element[K, V], size0),
 	}
 }
 

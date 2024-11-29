@@ -5,9 +5,13 @@ type OrderedMap struct {
 	ll list
 }
 
-func NewOrderedMap() *OrderedMap {
+func NewOrderedMap(size ...int) *OrderedMap {
+	var size0 = 0
+	if len(size) > 0 && size[0] > 0 {
+		size0 = size[0]
+	}
 	return &OrderedMap{
-		kv: make(map[interface{}]*Element),
+		kv: make(map[interface{}]*Element, size0),
 	}
 }
 
