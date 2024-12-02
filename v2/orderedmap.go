@@ -11,6 +11,14 @@ func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
 	}
 }
 
+// NewOrderedMapWithCapacity creates a map with enough pre-allocated space to
+// hold the specified number of elements.
+func NewOrderedMapWithCapacity[K comparable, V any](capacity int) *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		kv: make(map[K]*Element[K, V], capacity),
+	}
+}
+
 func NewOrderedMapWithElements[K comparable, V any](els ...*Element[K, V]) *OrderedMap[K, V] {
 	om := &OrderedMap[K, V]{
 		kv: make(map[K]*Element[K, V], len(els)),

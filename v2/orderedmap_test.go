@@ -730,6 +730,21 @@ func BenchmarkBigOrderedMap_Set(b *testing.B) {
 	benchmarkBigOrderedMap_Set()(b)
 }
 
+func benchmarkBigMapWithCapacity_Set() func(b *testing.B) {
+	return func(b *testing.B) {
+		for j := 0; j < b.N; j++ {
+			m := orderedmap.NewOrderedMapWithCapacity[int, bool](10000000)
+			for i := 0; i < 10000000; i++ {
+				m.Set(i, true)
+			}
+		}
+	}
+}
+
+func BenchmarkBigMapWithCapacity_Set(b *testing.B) {
+	benchmarkBigMapWithCapacity_Set()(b)
+}
+
 func benchmarkBigMap_Get() func(b *testing.B) {
 	m := make(map[int]bool)
 	for i := 0; i < 10000000; i++ {

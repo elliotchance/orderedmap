@@ -11,6 +11,14 @@ func NewOrderedMap() *OrderedMap {
 	}
 }
 
+// NewOrderedMapWithCapacity creates a map with enough pre-allocated space to
+// hold the specified number of elements.
+func NewOrderedMapWithCapacity(capacity int) *OrderedMap {
+	return &OrderedMap{
+		kv: make(map[interface{}]*Element, capacity),
+	}
+}
+
 // Get returns the value for a key. If the key does not exist, the second return
 // parameter will be false and the value will be nil.
 func (m *OrderedMap) Get(key interface{}) (interface{}, bool) {
