@@ -1,6 +1,7 @@
 package orderedmap_test
 
 import (
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -998,4 +999,147 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkBigOrderedMapString_Iterate",
 		BenchmarkBigOrderedMapString_Iterate)
 	b.Run("BenchmarkBigMapString_Iterate", BenchmarkBigMapString_Iterate)
+}
+
+func TestJsonMarshal(t *testing.T) {
+	tests := []struct {
+		name          string
+		encodeFn      func() ([]byte, error)
+		expected      string
+		errorExpected bool
+	}{
+		{
+			name: "key in string type",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[string, int]()
+				m.Set("one", 1)
+				m.Set("two", 2)
+				m.Set("three", 3)
+				return json.Marshal(m)
+			},
+			expected:      `{"one":1,"two":2,"three":3}`,
+			errorExpected: false,
+		},
+		{
+			name: "key in int type",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[int, string]()
+				m.Set(3, "three")
+				m.Set(2, "two")
+				m.Set(1, "one")
+				return json.Marshal(m)
+			},
+			expected:      `{"3":"three","2":"two","1":"one"}`,
+			errorExpected: false,
+		},
+		{
+			name: "key in uint type",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[uint, string]()
+				m.Set(3, "three")
+				m.Set(2, "two")
+				m.Set(1, "one")
+				return json.Marshal(m)
+			},
+			expected:      `{"3":"three","2":"two","1":"one"}`,
+			errorExpected: false,
+		},
+		{
+			name: "nil values",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[string, *string]()
+				m.Set("one", nil)
+				m.Set("two", nil)
+				m.Set("three", nil)
+				return json.Marshal(m)
+			},
+			expected:      `{"one":null,"two":null,"three":null}`,
+			errorExpected: false,
+		},
+		{
+			name: "nil map",
+			encodeFn: func() ([]byte, error) {
+				var m *orderedmap.OrderedMap[string, string]
+				return json.Marshal(m)
+			},
+			expected:      `null`,
+			errorExpected: false,
+		},
+		{
+			name: "empty map",
+			encodeFn: func() ([]byte, error) {
+				return json.Marshal(orderedmap.NewOrderedMap[string, string]())
+			},
+			expected:      `{}`,
+			errorExpected: false,
+		},
+		{
+			name: "key containing quote",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[string, string]()
+				m.Set(`key"with"quotes`, "value")
+				return json.Marshal(m)
+			},
+			expected:      `{"key\"with\"quotes":"value"}`,
+			errorExpected: false,
+		},
+		{
+			name: "key with special characters",
+			encodeFn: func() ([]byte, error) {
+				m := orderedmap.NewOrderedMap[string, string]()
+				m.Set("key\nwith\nnewlines", "value")
+				return json.Marshal(m)
+			},
+			expected:      `{"key\nwith\nnewlines":"value"}`,
+			errorExpected: false,
+		},
+		{
+			name: "key in unsupported type",
+			encodeFn: func() ([]byte, error) {
+				type Key struct {
+					Id int64 `json:"id"`
+				}
+				m := orderedmap.NewOrderedMap[Key, string]()
+				m.Set(Key{Id: 0}, "value")
+				return json.Marshal(m)
+			},
+			expected:      "",
+			errorExpected: true,
+		},
+		{
+			name: "key in custom type",
+			encodeFn: func() ([]byte, error) {
+				type Key int64
+				m := orderedmap.NewOrderedMap[Key, string]()
+				m.Set(Key(0), "value")
+				return json.Marshal(m)
+			},
+			expected:      `{"0":"value"}`,
+			errorExpected: false,
+		},
+		{
+			name: "nested map",
+			encodeFn: func() ([]byte, error) {
+				inner := orderedmap.NewOrderedMap[string, int]()
+				inner.Set("innerKey", 42)
+				outer := orderedmap.NewOrderedMap[string, *orderedmap.OrderedMap[string, int]]()
+				outer.Set("outerKey", inner)
+				return json.Marshal(outer)
+			},
+			expected:      `{"outerKey":{"innerKey":42}}`,
+			errorExpected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			b, err := test.encodeFn()
+			if test.errorExpected {
+				assert.Error(t, err)
+				return
+			}
+			assert.Nil(t, err)
+			assert.Equal(t, test.expected, string(b))
+		})
+	}
 }
