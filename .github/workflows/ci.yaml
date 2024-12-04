@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  unit-tests:
+  unit-tests-v2:
     strategy:
       matrix:
         go:
@@ -19,3 +19,12 @@ jobs:
           go-version: ${{ matrix.go }}
       - run: go test -v ./...
       - run: cd v2 && go test -v ./...
+
+  unit-tests-v3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '^1.23'
+      - run: cd v3 && go test -v ./...

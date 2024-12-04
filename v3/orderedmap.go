@@ -1,5 +1,7 @@
 package orderedmap
 
+import "iter"
+
 type OrderedMap[K comparable, V any] struct {
 	kv map[K]*Element[K, V]
 	ll list[K, V]
@@ -96,15 +98,54 @@ func (m *OrderedMap[K, V]) Len() int {
 	return len(m.kv)
 }
 
-// Keys returns all of the keys in the order they were inserted. If a key was
-// replaced it will retain the same position. To ensure most recently set keys
-// are always at the end you must always Delete before Set.
-func (m *OrderedMap[K, V]) Keys() (keys []K) {
-	keys = make([]K, 0, m.Len())
-	for el := m.Front(); el != nil; el = el.Next() {
-		keys = append(keys, el.Key)
+// AllFromFront returns an iterator that yields all elements in the map starting
+// at the front (oldest Set element).
+func (m *OrderedMap[K, V]) AllFromFront() iter.Seq2[K, V] {
+	return func(yield func(key K, value V) bool) {
+		for el := m.Front(); el != nil; el = el.Next() {
+			if !yield(el.Key, el.Value) {
+				return
+			}
+		}
 	}
-	return keys
+}
+
+// AllFromBack returns an iterator that yields all elements in the map starting
+// at the back (most recent Set element).
+func (m *OrderedMap[K, V]) AllFromBack() iter.Seq2[K, V] {
+	return func(yield func(key K, value V) bool) {
+		for el := m.Back(); el != nil; el = el.Prev() {
+			if !yield(el.Key, el.Value) {
+				return
+			}
+		}
+	}
+}
+
+// Keys returns an iterator that yields all the keys in the map starting at the
+// front (oldest Set element). To create a slice containing all the map keys,
+// use the slices.Collect function on the returned iterator.
+func (m *OrderedMap[K, V]) Keys() iter.Seq[K] {
+	return func(yield func(key K) bool) {
+		for el := m.Front(); el != nil; el = el.Next() {
+			if !yield(el.Key) {
+				return
+			}
+		}
+	}
+}
+
+// Values returns an iterator that yields all the values in the map starting at
+// the front (oldest Set element). To create a slice containing all the map
+// values, use the slices.Collect function on the returned iterator.
+func (m *OrderedMap[K, V]) Values() iter.Seq[V] {
+	return func(yield func(value V) bool) {
+		for el := m.Front(); el != nil; el = el.Next() {
+			if !yield(el.Value) {
+				return
+			}
+		}
+	}
 }
 
 // Delete will remove a key from the map. It will return true if the key was
