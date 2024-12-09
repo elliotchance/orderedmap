@@ -22,9 +22,7 @@ func NewOrderedMapWithCapacity[K comparable, V any](capacity int) *OrderedMap[K,
 }
 
 func NewOrderedMapWithElements[K comparable, V any](els ...*Element[K, V]) *OrderedMap[K, V] {
-	om := &OrderedMap[K, V]{
-		kv: make(map[K]*Element[K, V], len(els)),
-	}
+	om := NewOrderedMapWithCapacity[K, V](len(els))
 	for _, el := range els {
 		om.Set(el.Key, el.Value)
 	}
@@ -175,7 +173,7 @@ func (m *OrderedMap[K, V]) Back() *Element[K, V] {
 // Copy returns a new OrderedMap with the same elements.
 // Using Copy while there are concurrent writes may mangle the result.
 func (m *OrderedMap[K, V]) Copy() *OrderedMap[K, V] {
-	m2 := NewOrderedMap[K, V]()
+	m2 := NewOrderedMapWithCapacity[K, V](m.Len())
 	for el := m.Front(); el != nil; el = el.Next() {
 		m2.Set(el.Key, el.Value)
 	}
