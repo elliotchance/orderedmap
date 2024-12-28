@@ -357,6 +357,27 @@ func TestGetElement(t *testing.T) {
 	})
 }
 
+func TestOrderedMap_Has(t *testing.T) {
+	t.Run("ReturnsFalseIfKeyDoesNotExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.False(t, m.Has("foo"))
+	})
+
+	t.Run("ReturnsTrueIfKeyExists", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "bar")
+		assert.True(t, m.Has("foo"))
+	})
+
+	t.Run("KeyDoesNotExistAfterDelete", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "bar")
+		m.Delete("foo")
+		assert.False(t, m.Has("foo"))
+	})
+}
+
+
 func benchmarkMap_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := make(map[int]bool)
@@ -1001,6 +1022,24 @@ func BenchmarkBigOrderedMapString_Iterate(b *testing.B) {
 	benchmarkBigOrderedMapString_Iterate()(b)
 }
 
+func benchmarkOrderedMap_Has(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap()
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(i, true)
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.Has(i % 1000 * multiplier)
+		}
+	}
+}
+
+func BenchmarkOrderedMap_Has(b *testing.B) {
+	benchmarkOrderedMap_Has(1)(b)
+}
+
+
 func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkOrderedMap_Keys", BenchmarkOrderedMap_Keys)
 
@@ -1013,6 +1052,7 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMap_Delete", BenchmarkMap_Delete)
 	b.Run("BenchmarkOrderedMap_Iterate", BenchmarkOrderedMap_Iterate)
 	b.Run("BenchmarkMap_Iterate", BenchmarkMap_Iterate)
+	b.Run("BenchmarkOrderedMap_Has", BenchmarkOrderedMap_Has)
 
 	b.Run("BenchmarkBigMap_Set", BenchmarkBigMap_Set)
 	b.Run("BenchmarkBigOrderedMap_Set", BenchmarkBigOrderedMap_Set)
