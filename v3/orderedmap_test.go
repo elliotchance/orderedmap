@@ -573,6 +573,39 @@ func BenchmarkOrderedMap_Iterate(b *testing.B) {
 	benchmarkOrderedMap_Iterate(1)(b)
 }
 
+func benchmarkOrderedMap_Has(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap[int, bool]()
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(i, true)
+	}
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.Has(i % 1000 * multiplier)
+		}
+	}
+}
+
+func BenchmarkOrderedMap_Has(b *testing.B) {
+	benchmarkOrderedMap_Has(1)(b)
+}
+
+func benchmarkMap_Has(multiplier int) func(b *testing.B) {
+	m := make(map[int]bool)
+	for i := 0; i < 1000*multiplier; i++ {
+		m[i] = true
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, _ = m[i%1000*multiplier]
+		}
+	}
+}
+
+func BenchmarkMap_Has(b *testing.B) {
+	benchmarkMap_Has(1)(b)
+}
+
 func benchmarkMapString_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := make(map[string]bool)
@@ -1007,22 +1040,6 @@ func BenchmarkBigOrderedMapString_Iterate(b *testing.B) {
 	benchmarkBigOrderedMapString_Iterate()(b)
 }
 
-func benchmarkOrderedMap_Has(multiplier int) func(b *testing.B) {
-	m := orderedmap.NewOrderedMap[int, bool]()
-	for i := 0; i < 1000*multiplier; i++ {
-		m.Set(i, true)
-	}
-	return func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			m.Has(i % 1000 * multiplier)
-		}
-	}
-}
-
-func BenchmarkOrderedMap_Has(b *testing.B) {
-	benchmarkOrderedMap_Has(1)(b)
-}
-
 func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkOrderedMap_Set", BenchmarkOrderedMap_Set)
 	b.Run("BenchmarkMap_Set", BenchmarkMap_Set)
@@ -1033,6 +1050,8 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMap_Delete", BenchmarkMap_Delete)
 	b.Run("BenchmarkOrderedMap_Iterate", BenchmarkOrderedMap_Iterate)
 	b.Run("BenchmarkMap_Iterate", BenchmarkMap_Iterate)
+	b.Run("BenchmarkOrderedMap_Has", BenchmarkOrderedMap_Has)
+	b.Run("BenchmarkMap_Has", BenchmarkMap_Has)
 
 	b.Run("BenchmarkBigMap_Set", BenchmarkBigMap_Set)
 	b.Run("BenchmarkBigOrderedMap_Set", BenchmarkBigOrderedMap_Set)
@@ -1064,5 +1083,4 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkBigOrderedMapString_Iterate",
 		BenchmarkBigOrderedMapString_Iterate)
 	b.Run("BenchmarkBigMapString_Iterate", BenchmarkBigMapString_Iterate)
-	b.Run("BenchmarkOrderedMap_Has", BenchmarkOrderedMap_Has)
 }
