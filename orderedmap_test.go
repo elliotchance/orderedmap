@@ -1068,6 +1068,7 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMapString_Delete", BenchmarkMapString_Delete)
 	b.Run("BenchmarkOrderedMapString_Iterate", BenchmarkOrderedMapString_Iterate)
 	b.Run("BenchmarkMapString_Iterate", BenchmarkMapString_Iterate)
+	b.Run("BenchmarkOrderedMap_Has", BenchmarkOrderedMap_Has)
 
 	b.Run("BenchmarkBigMapString_Set", BenchmarkBigMapString_Set)
 	b.Run("BenchmarkBigOrderedMapString_Set", BenchmarkBigOrderedMapString_Set)
