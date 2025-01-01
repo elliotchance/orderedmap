@@ -991,10 +991,13 @@ func BenchmarkBigOrderedMapString_Iterate(b *testing.B) {
 }
 
 func benchmarkOrderedMap_Has(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap[int, bool]()
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(i, true)
+	}
 	return func(b *testing.B) {
-		m := orderedmap.NewOrderedMap[int, bool]()
-		for i := 0; i < b.N*multiplier; i++ {
-			m.Has(i)
+		for i := 0; i < b.N; i++ {
+			m.Has(i % 1000 * multiplier)
 		}
 	}
 }
