@@ -138,3 +138,9 @@ func (m *OrderedMap[K, V]) Copy() *OrderedMap[K, V] {
 	}
 	return m2
 }
+
+// Has checks if a key exists in the map.
+func (m *OrderedMap[K, V]) Has(key K) bool {
+	_, exists := m.kv[key]
+	return exists
+}
