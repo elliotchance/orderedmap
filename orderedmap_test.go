@@ -3,6 +3,7 @@ package orderedmap_test
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/elliotchance/orderedmap"
@@ -1166,6 +1167,31 @@ func benchmarkBigOrderedMapString_Has() func(b *testing.B) {
 
 func BenchmarkBigOrderedMapString_Has(b *testing.B) {
 	benchmarkBigOrderedMapString_Has()(b)
+}
+
+func TestThreadSafe(t *testing.T) {
+	m := orderedmap.NewOrderedMap()
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1000000; i++ {
+			_ = m.Set(i, i)
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 1000000; i++ {
+			_ = m.Set(i, i)
+		}
+	}()
+	wg.Wait()
+	for i := 0; i < 1000000; i++ {
+		if !m.Has(i) {
+			t.Fail()
+		}
+	}
 }
 
 func BenchmarkAll(b *testing.B) {
