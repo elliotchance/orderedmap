@@ -6,6 +6,15 @@ type SyncOrderedMap[K comparable, V any] struct {
 	OrderedMap[K, V]
 	sync.RWMutex
 }
+
+func NewSyncOrderedMap[K comparable, V any]() *SyncOrderedMap[K, V] {
+	return &SyncOrderedMap[K, V]{*NewOrderedMap[K, V](), sync.RWMutex{}}
+}
+
+func NewSyncOrderedMapWithCapacity[K comparable, V any](capacity int) *SyncOrderedMap[K, V] {
+	return &SyncOrderedMap[K, V]{*NewOrderedMapWithCapacity[K, V](capacity), sync.RWMutex{}}
+}
+
 func (m *SyncOrderedMap[K, V]) Get(key K) (value V, ok bool) {
 	m.RLock()
 	defer m.RUnlock()
