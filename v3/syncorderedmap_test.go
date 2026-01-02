@@ -92,7 +92,9 @@ func TestRaceCondition(t *testing.T) {
 			key := rand.Intn(100)
 			e := m.GetElement(key)
 			if e != nil {
-				fmt.Println(e.Value)
+				m.RLock()
+				_ = e.Value
+				m.RUnlock()
 			}
 			wg.Done()
 		}()
