@@ -114,3 +114,34 @@ func TestRaceCondition(t *testing.T) {
 	fmt.Println("TestRaceCondition completed")
 	fmt.Printf("SyncOrderedMap eventually has %v elements\n", m.Len())
 }
+
+func TestSyncOrderedMapMutex(t *testing.T) {
+	m := orderedmap.NewSyncOrderedMap[int, string]()
+
+	for i := 0; i < 1000; i++ {
+		m.Set(i, fmt.Sprintf("value-%v", i))
+	}
+
+	stop := make(chan struct{})
+	go func() {
+		i := 0
+		for {
+			select {
+			case <-stop:
+				return
+
+			default:
+				m.Set(i, fmt.Sprintf("new-value-%v", i))
+				i++
+			}
+		}
+	}()
+
+	m.Lock()
+	for key := range m.Keys() {
+		m.OrderedMap.Get(key)
+	}
+	m.Unlock()
+
+	stop <- struct{}{}
+}
