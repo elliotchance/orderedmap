@@ -43,6 +43,13 @@ func (m *SyncOrderedMap[K, V]) GetOrDefault(key K, defaultValue V) V {
 	return m.OrderedMap.GetOrDefault(key, defaultValue)
 }
 
+func (m *SyncOrderedMap[K, V]) GetElement(key K) *Element[K, V] {
+	m.RLock()
+	defer m.RUnlock()
+
+	return m.OrderedMap.GetElement(key)
+}
+
 func (m *SyncOrderedMap[K, V]) Len() int {
 	m.RLock()
 	defer m.RUnlock()
