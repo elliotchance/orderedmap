@@ -86,6 +86,18 @@ func TestRaceCondition(t *testing.T) {
 		}()
 	}
 
+	var asyncGetElement = func() {
+		wg.Add(1)
+		go func() {
+			key := rand.Intn(100)
+			e := m.GetElement(key)
+			if e != nil {
+				fmt.Println(e.Value)
+			}
+			wg.Done()
+		}()
+	}
+
 	for i := 0; i < 10000; i++ {
 		asyncSet()
 		asyncGet()
@@ -95,6 +107,7 @@ func TestRaceCondition(t *testing.T) {
 		asyncReplaceKEy()
 		asyncGetOrDefault()
 		asyncCopy()
+		asyncGetElement()
 	}
 
 	wg.Wait()
