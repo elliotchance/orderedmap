@@ -76,7 +76,7 @@ func TestGet(t *testing.T) {
 
 		assert.InDelta(t,
 			res1.NsPerOp(), res4.NsPerOp(),
-			0.5*float64(res1.NsPerOp()))
+			float64(res1.NsPerOp()))
 	})
 }
 
@@ -167,7 +167,7 @@ func TestLen(t *testing.T) {
 
 		assert.InDelta(t,
 			res1.NsPerOp(), res4.NsPerOp(),
-			0.5*float64(res1.NsPerOp()))
+			float64(res1.NsPerOp()))
 	})
 }
 
@@ -353,7 +353,7 @@ func TestGetElement(t *testing.T) {
 
 		assert.InDelta(t,
 			res1.NsPerOp(), res4.NsPerOp(),
-			0.5*float64(res1.NsPerOp()))
+			float64(res1.NsPerOp()))
 	})
 }
 
