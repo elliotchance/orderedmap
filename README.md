@@ -2,8 +2,9 @@
 
 ## Basic Usage
 
-An `*OrderedMap` is a high performance ordered map that maintains amortized O(1)
-for `Set`, `Get`, `Delete` and `Len`:
+An `*OrderedMap` is a high performance map that preserves the insertion order
+of keys. Keys are not sorted. `Set`, `Get`, `Delete` and `Len` have amortized O(1)
+time complexity:
 
 ```go
 import "github.com/elliotchance/orderedmap/v3"
@@ -39,35 +40,41 @@ elements in an ordered map:
 - `Keys()`
 - `Values()`
 
+The examples below use the map created in Basic Usage:
+
 ```go
 // Iterate through all elements from oldest to newest:
 for key, value := range m.AllFromFront() {
 	fmt.Println(key, value)
 }
+// foo bar
+// 123 true
 ```
 
-Iterators are safe to use bidirectionally, and will return `nil` once it goes
-beyond the first or last item. If the map is changing while the iteration is
-in-flight it may produce unexpected behavior.
+These range loops stop after the last element yielded by the iterator. If the
+map is changing while the iteration is in-flight it may produce unexpected
+behavior.
 
 If you want to get a slice of the map keys or values, you can use the standard
 `slices.Collect` method with the iterator returned from `Keys()` or `Values()`:
 
 ```go
-fmt.Println(slices.Collect(m.Keys())
-// [A B C]
+fmt.Println(slices.Collect(m.Keys()))
+// [foo 123]
 ```
 
 Likewise, calling `maps.Collect` on the iterator returned from `AllFromFront()`
 will create a regular unordered map from the ordered one:
 
 ```go
-fmt.Println(maps.Collect(m.AllFromFront())
-// [A:1 B:2 C:3]
+fmt.Println(maps.Collect(m.AllFromFront()))
+// map[123:true foo:bar]
 ```
 
 If you don't want to use iterators, you can also manually loop over the elements
-using `Front()` or `Back()` with `Next()`:
+using `Front()` with `Next()`, or `Back()` with `Prev()`. These element pointers
+become `nil` beyond the last or first element, respectively. `Front()` and
+`Back()` return `nil` when the map is empty:
 
 ```go
 // Iterate through all elements from oldest to newest:
