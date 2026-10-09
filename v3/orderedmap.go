@@ -185,3 +185,19 @@ func (m *OrderedMap[K, V]) Has(key K) bool {
 	_, exists := m.kv[key]
 	return exists
 }
+
+// Swap swaps the positions of two elements in the ordered map by their keys.
+// If either key does not exist, it returns false.
+// If both keys exist and are swapped (or are the same key), it returns true.
+func (m *OrderedMap[K, V]) Swap(key1, key2 K) bool {
+	e1, ok1 := m.kv[key1]
+	e2, ok2 := m.kv[key2]
+	if !ok1 || !ok2 {
+		return false
+	}
+	if e1 == e2 {
+		return true
+	}
+	m.ll.Swap(e1, e2)
+	return true
+}

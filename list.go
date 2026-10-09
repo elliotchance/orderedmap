@@ -93,3 +93,67 @@ func (l *list) PushBack(key interface{}, value interface{}) *Element {
 	l.root.prev = e
 	return e
 }
+
+// Swap swaps the positions of e1 and e2 in the list.
+func (l *list) Swap(e1, e2 *Element) {
+	if e1 == nil || e2 == nil || e1 == e2 {
+		return
+	}
+
+	if e2.next == e1 {
+		e1, e2 = e2, e1
+	}
+
+	if e1.next == e2 {
+		p := e1.prev
+		n := e2.next
+
+		if p != nil {
+			p.next = e2
+		} else {
+			l.root.next = e2
+		}
+
+		if n != nil {
+			n.prev = e1
+		} else {
+			l.root.prev = e1
+		}
+
+		e2.prev = p
+		e2.next = e1
+		e1.prev = e2
+		e1.next = n
+		return
+	}
+
+	p1, n1 := e1.prev, e1.next
+	p2, n2 := e2.prev, e2.next
+
+	if p1 != nil {
+		p1.next = e2
+	} else {
+		l.root.next = e2
+	}
+
+	if n1 != nil {
+		n1.prev = e2
+	} else {
+		l.root.prev = e2
+	}
+
+	if p2 != nil {
+		p2.next = e1
+	} else {
+		l.root.next = e1
+	}
+
+	if n2 != nil {
+		n2.prev = e1
+	} else {
+		l.root.prev = e1
+	}
+
+	e1.prev, e1.next = p2, n2
+	e2.prev, e2.next = p1, n1
+}
