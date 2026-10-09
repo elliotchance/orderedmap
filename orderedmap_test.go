@@ -1,6 +1,7 @@
 package orderedmap_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -374,6 +375,262 @@ func TestOrderedMap_Has(t *testing.T) {
 		m.Set("foo", "bar")
 		m.Delete("foo")
 		assert.False(t, m.Has("foo"))
+	})
+}
+
+type textKey struct {
+	val string
+}
+
+func (k textKey) MarshalText() ([]byte, error) {
+	return []byte("text_" + k.val), nil
+}
+
+func TestOrderedMap_MarshalJSON(t *testing.T) {
+	t.Run("NilMap", func(t *testing.T) {
+		var m *orderedmap.OrderedMap
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, "null", string(b))
+	})
+
+	t.Run("EmptyMap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, "{}", string(b))
+	})
+
+	t.Run("SingleElement", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "bar")
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"foo":"bar"}`, string(b))
+	})
+
+	t.Run("PreservesInsertionOrder", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("zebra", 1)
+		m.Set("apple", 2)
+		m.Set("mango", 3)
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"zebra":1,"apple":2,"mango":3}`, string(b))
+	})
+
+	t.Run("ReplacingKeyPreservesPosition", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("a", 10)
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"a":10,"b":2}`, string(b))
+	})
+
+	t.Run("VariousKeyTypes", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("str", "value")
+		m.Set(123, "int_val")
+		m.Set(textKey{val: "custom"}, "text_val")
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"str":"value","123":"int_val","text_custom":"text_val"}`, string(b))
+	})
+
+	t.Run("VariousValueTypes", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("str", "hello")
+		m.Set("num", 42.5)
+		m.Set("bool", true)
+		m.Set("null", nil)
+		m.Set("slice", []interface{}{1, 2, "three"})
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"str":"hello","num":42.5,"bool":true,"null":null,"slice":[1,2,"three"]}`, string(b))
+	})
+
+	t.Run("NestedOrderedMap", func(t *testing.T) {
+		inner := orderedmap.NewOrderedMap()
+		inner.Set("z", 100)
+		inner.Set("a", 200)
+
+		outer := orderedmap.NewOrderedMap()
+		outer.Set("id", "test")
+		outer.Set("nested", inner)
+
+		b, err := json.Marshal(outer)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"id":"test","nested":{"z":100,"a":200}}`, string(b))
+	})
+
+	t.Run("SliceOfNestedOrderedMaps", func(t *testing.T) {
+		item1 := orderedmap.NewOrderedMap()
+		item1.Set("k2", "v2")
+		item1.Set("k1", "v1")
+
+		outer := orderedmap.NewOrderedMap()
+		outer.Set("items", []interface{}{item1})
+
+		b, err := json.Marshal(outer)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"items":[{"k2":"v2","k1":"v1"}]}`, string(b))
+	})
+
+	t.Run("MarshalIndent", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("b", 2)
+		m.Set("a", 1)
+		b, err := json.MarshalIndent(m, "", "  ")
+		assert.NoError(t, err)
+		expected := "{\n  \"b\": 2,\n  \"a\": 1\n}"
+		assert.Equal(t, expected, string(b))
+	})
+}
+
+func TestOrderedMap_UnmarshalJSON(t *testing.T) {
+	t.Run("EmptyInputError", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(""), m)
+		assert.Error(t, err)
+
+		err = json.Unmarshal([]byte("   "), m)
+		assert.Error(t, err)
+	})
+
+	t.Run("NilPointerError", func(t *testing.T) {
+		var m *orderedmap.OrderedMap
+		err := m.UnmarshalJSON([]byte(`{"a":1}`))
+		assert.Error(t, err)
+	})
+
+	t.Run("NullInput", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("foo", "bar")
+		err := json.Unmarshal([]byte("null"), m)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, m.Len())
+	})
+
+	t.Run("EmptyObject", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte("{}"), m)
+		assert.NoError(t, err)
+		assert.Equal(t, 0, m.Len())
+	})
+
+	t.Run("PreservesOrder", func(t *testing.T) {
+		input := `{"z":1,"a":2,"m":3}`
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(input), m)
+		assert.NoError(t, err)
+		assert.Equal(t, []interface{}{"z", "a", "m"}, m.Keys())
+		v, ok := m.Get("a")
+		assert.True(t, ok)
+		assert.Equal(t, float64(2), v)
+	})
+
+	t.Run("DuplicateKeysPreservesOriginalOrderAndUpdatesValue", func(t *testing.T) {
+		input := `{"a":1,"b":2,"a":3}`
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(input), m)
+		assert.NoError(t, err)
+		assert.Equal(t, []interface{}{"a", "b"}, m.Keys())
+		v, ok := m.Get("a")
+		assert.True(t, ok)
+		assert.Equal(t, float64(3), v)
+	})
+
+	t.Run("NestedObjects", func(t *testing.T) {
+		input := `{"outer":{"z":10,"y":20,"x":30}}`
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(input), m)
+		assert.NoError(t, err)
+
+		outerVal, ok := m.Get("outer")
+		assert.True(t, ok)
+		childMap, isOM := outerVal.(*orderedmap.OrderedMap)
+		assert.True(t, isOM)
+		assert.Equal(t, []interface{}{"z", "y", "x"}, childMap.Keys())
+		valY, _ := childMap.Get("y")
+		assert.Equal(t, float64(20), valY)
+	})
+
+	t.Run("ArrayWithNestedObjects", func(t *testing.T) {
+		input := `{"list":[{"k2":"v2","k1":"v1"},{"k4":"v4","k3":"v3"}]}`
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(input), m)
+		assert.NoError(t, err)
+
+		listVal, ok := m.Get("list")
+		assert.True(t, ok)
+		list := listVal.([]interface{})
+		assert.Len(t, list, 2)
+
+		elem1 := list[0].(*orderedmap.OrderedMap)
+		assert.Equal(t, []interface{}{"k2", "k1"}, elem1.Keys())
+		elem2 := list[1].(*orderedmap.OrderedMap)
+		assert.Equal(t, []interface{}{"k4", "k3"}, elem2.Keys())
+	})
+
+	t.Run("InvalidSyntax", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`{"a":}`), m)
+		assert.Error(t, err)
+	})
+
+	t.Run("InvalidTypeNotObject", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`[1, 2, 3]`), m)
+		assert.Error(t, err)
+
+		err = json.Unmarshal([]byte(`"string"`), m)
+		assert.Error(t, err)
+	})
+
+	t.Run("TrailingData", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(`{"a": 1} trailing`), m)
+		assert.Error(t, err)
+	})
+}
+
+func TestOrderedMap_JSONRoundTrip(t *testing.T) {
+	t.Run("ComplexNestedRoundTrip", func(t *testing.T) {
+		originalJSON := `{"name":"test","config":{"timeout":30,"retries":3,"tags":["fast","ci"]},"active":true}`
+		m := orderedmap.NewOrderedMap()
+		err := json.Unmarshal([]byte(originalJSON), m)
+		assert.NoError(t, err)
+
+		marshaled, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, originalJSON, string(marshaled))
+	})
+
+	t.Run("StructContainingOrderedMap", func(t *testing.T) {
+		type Envelope struct {
+			Title   string                 `json:"title"`
+			Payload *orderedmap.OrderedMap `json:"payload"`
+		}
+
+		payload := orderedmap.NewOrderedMap()
+		payload.Set("z", 1)
+		payload.Set("a", 2)
+		env := Envelope{
+			Title:   "envelope",
+			Payload: payload,
+		}
+
+		b, err := json.Marshal(env)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"title":"envelope","payload":{"z":1,"a":2}}`, string(b))
+
+		var envDecoded Envelope
+		err = json.Unmarshal(b, &envDecoded)
+		assert.NoError(t, err)
+		assert.Equal(t, "envelope", envDecoded.Title)
+		assert.Equal(t, []interface{}{"z", "a"}, envDecoded.Payload.Keys())
 	})
 }
 
