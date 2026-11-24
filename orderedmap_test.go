@@ -377,6 +377,175 @@ func TestOrderedMap_Has(t *testing.T) {
 	})
 }
 
+func TestOrderedMap_Swap(t *testing.T) {
+	t.Run("ReturnsFalseIfFirstKeyDoesNotExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("b", 2)
+		assert.False(t, m.Swap("a", "b"))
+	})
+
+	t.Run("ReturnsFalseIfSecondKeyDoesNotExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		assert.False(t, m.Swap("a", "b"))
+	})
+
+	t.Run("ReturnsFalseIfBothKeysDoNotExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.False(t, m.Swap("a", "b"))
+	})
+
+	t.Run("ReturnsTrueIfKeysAreIdenticalAndExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		assert.True(t, m.Swap("a", "a"))
+		assert.Equal(t, []interface{}{"a", "b"}, m.Keys())
+	})
+
+	t.Run("ReturnsFalseIfKeysAreIdenticalAndDoNotExist", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		assert.False(t, m.Swap("a", "a"))
+	})
+
+	t.Run("SwapTwoAdjacentElementsHeadAndTail", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		assert.True(t, m.Swap("a", "b"))
+		assert.Equal(t, []interface{}{"b", "a"}, m.Keys())
+		assert.Equal(t, "b", m.Front().Key)
+		assert.Equal(t, "a", m.Back().Key)
+		assert.Nil(t, m.Front().Prev())
+		assert.Equal(t, m.Back(), m.Front().Next())
+		assert.Equal(t, m.Front(), m.Back().Prev())
+		assert.Nil(t, m.Back().Next())
+	})
+
+	t.Run("SwapTwoAdjacentElementsReverseOrder", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		assert.True(t, m.Swap("b", "a"))
+		assert.Equal(t, []interface{}{"b", "a"}, m.Keys())
+		assert.Equal(t, "b", m.Front().Key)
+		assert.Equal(t, "a", m.Back().Key)
+	})
+
+	t.Run("SwapAdjacentElementsAtHead", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		assert.True(t, m.Swap("a", "b"))
+		assert.Equal(t, []interface{}{"b", "a", "c"}, m.Keys())
+		assert.Equal(t, "b", m.Front().Key)
+		assert.Equal(t, "c", m.Back().Key)
+	})
+
+	t.Run("SwapAdjacentElementsAtTail", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		assert.True(t, m.Swap("b", "c"))
+		assert.Equal(t, []interface{}{"a", "c", "b"}, m.Keys())
+		assert.Equal(t, "a", m.Front().Key)
+		assert.Equal(t, "b", m.Back().Key)
+	})
+
+	t.Run("SwapAdjacentElementsInMiddle", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		m.Set("d", 4)
+		assert.True(t, m.Swap("b", "c"))
+		assert.Equal(t, []interface{}{"a", "c", "b", "d"}, m.Keys())
+	})
+
+	t.Run("SwapNonAdjacentHeadAndTail", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		assert.True(t, m.Swap("a", "c"))
+		assert.Equal(t, []interface{}{"c", "b", "a"}, m.Keys())
+		assert.Equal(t, "c", m.Front().Key)
+		assert.Equal(t, "a", m.Back().Key)
+	})
+
+	t.Run("SwapNonAdjacentHeadAndTailReversed", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		assert.True(t, m.Swap("c", "a"))
+		assert.Equal(t, []interface{}{"c", "b", "a"}, m.Keys())
+		assert.Equal(t, "c", m.Front().Key)
+		assert.Equal(t, "a", m.Back().Key)
+	})
+
+	t.Run("SwapNonAdjacentMiddleElements", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		m.Set("d", 4)
+		m.Set("e", 5)
+		assert.True(t, m.Swap("b", "d"))
+		assert.Equal(t, []interface{}{"a", "d", "c", "b", "e"}, m.Keys())
+	})
+
+	t.Run("SwapMaintainsValuesAndGet", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Swap("a", "b")
+		valA, okA := m.Get("a")
+		valB, okB := m.Get("b")
+		assert.True(t, okA)
+		assert.Equal(t, 1, valA)
+		assert.True(t, okB)
+		assert.Equal(t, 2, valB)
+	})
+
+	t.Run("ReverseIterationAfterSwap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		m.Swap("a", "c")
+		var keys []interface{}
+		for el := m.Back(); el != nil; el = el.Prev() {
+			keys = append(keys, el.Key)
+		}
+		assert.Equal(t, []interface{}{"a", "b", "c"}, keys)
+	})
+
+	t.Run("DeleteAfterSwap", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Set("c", 3)
+		m.Swap("a", "c")
+		assert.True(t, m.Delete("c"))
+		assert.Equal(t, []interface{}{"b", "a"}, m.Keys())
+		assert.Equal(t, "b", m.Front().Key)
+		assert.Equal(t, "a", m.Back().Key)
+	})
+
+	t.Run("SetAfterSwapAppendsToTail", func(t *testing.T) {
+		m := orderedmap.NewOrderedMap()
+		m.Set("a", 1)
+		m.Set("b", 2)
+		m.Swap("a", "b")
+		m.Set("c", 3)
+		assert.Equal(t, []interface{}{"b", "a", "c"}, m.Keys())
+		assert.Equal(t, "c", m.Back().Key)
+	})
+}
+
 func benchmarkMap_Set(multiplier int) func(b *testing.B) {
 	return func(b *testing.B) {
 		m := make(map[int]bool)
@@ -576,6 +745,23 @@ func benchmarkOrderedMap_Has(multiplier int) func(b *testing.B) {
 
 func BenchmarkOrderedMap_Has(b *testing.B) {
 	benchmarkOrderedMap_Has(1)(b)
+}
+
+func benchmarkOrderedMap_Swap(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap()
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(i, true)
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.Swap(i%(1000*multiplier), (i+1)%(1000*multiplier))
+		}
+	}
+}
+
+func BenchmarkOrderedMap_Swap(b *testing.B) {
+	benchmarkOrderedMap_Swap(1)(b)
 }
 
 func BenchmarkOrderedMap_Iterate(b *testing.B) {
@@ -786,6 +972,24 @@ func benchmarkOrderedMapString_Has(multiplier int) func(b *testing.B) {
 
 func BenchmarkOrderedMapString_Has(b *testing.B) {
 	benchmarkOrderedMapString_Has(1)(b)
+}
+
+func benchmarkOrderedMapString_Swap(multiplier int) func(b *testing.B) {
+	m := orderedmap.NewOrderedMap()
+	a := "12345678"
+	for i := 0; i < 1000*multiplier; i++ {
+		m.Set(a+strconv.Itoa(i), true)
+	}
+
+	return func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			m.Swap(a+strconv.Itoa(i%(1000*multiplier)), a+strconv.Itoa((i+1)%(1000*multiplier)))
+		}
+	}
+}
+
+func BenchmarkOrderedMapString_Swap(b *testing.B) {
+	benchmarkOrderedMapString_Swap(1)(b)
 }
 
 func BenchmarkOrderedMap_Keys(b *testing.B) {
@@ -1168,6 +1372,26 @@ func BenchmarkBigOrderedMapString_Has(b *testing.B) {
 	benchmarkBigOrderedMapString_Has()(b)
 }
 
+func benchmarkBigOrderedMapString_Swap() func(b *testing.B) {
+	m := orderedmap.NewOrderedMap()
+	a := "12345678"
+	for i := 0; i < 10000000; i++ {
+		m.Set(a+strconv.Itoa(i), true)
+	}
+
+	return func(b *testing.B) {
+		for j := 0; j < b.N; j++ {
+			for i := 0; i < 10000000; i++ {
+				m.Swap(a+strconv.Itoa(i), a+strconv.Itoa((i+1)%10000000))
+			}
+		}
+	}
+}
+
+func BenchmarkBigOrderedMapString_Swap(b *testing.B) {
+	benchmarkBigOrderedMapString_Swap()(b)
+}
+
 func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkOrderedMap_Keys", BenchmarkOrderedMap_Keys)
 
@@ -1182,6 +1406,7 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMap_Iterate", BenchmarkMap_Iterate)
 	b.Run("BenchmarkOrderedMap_Has", BenchmarkOrderedMap_Has)
 	b.Run("BenchmarkMap_Has", BenchmarkMap_Has)
+	b.Run("BenchmarkOrderedMap_Swap", BenchmarkOrderedMap_Swap)
 
 	b.Run("BenchmarkBigMap_Set", BenchmarkBigMap_Set)
 	b.Run("BenchmarkBigOrderedMap_Set", BenchmarkBigOrderedMap_Set)
@@ -1204,6 +1429,7 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkMapString_Iterate", BenchmarkMapString_Iterate)
 	b.Run("BenchmarkMapString_Has", BenchmarkMapString_Has)
 	b.Run("BenchmarkOrderedMapString_Has", BenchmarkOrderedMapString_Has)
+	b.Run("BenchmarkOrderedMapString_Swap", BenchmarkOrderedMapString_Swap)
 
 	b.Run("BenchmarkBigMapString_Set", BenchmarkBigMapString_Set)
 	b.Run("BenchmarkBigOrderedMapString_Set", BenchmarkBigOrderedMapString_Set)
@@ -1214,4 +1440,5 @@ func BenchmarkAll(b *testing.B) {
 	b.Run("BenchmarkBigMapString_Iterate", BenchmarkBigMapString_Iterate)
 	b.Run("BenchmarkBigMapString_Has", BenchmarkBigMapString_Has)
 	b.Run("BenchmarkBigOrderedMapString_Has", BenchmarkBigOrderedMapString_Has)
+	b.Run("BenchmarkBigOrderedMapString_Swap", BenchmarkBigOrderedMapString_Swap)
 }
